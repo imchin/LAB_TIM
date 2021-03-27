@@ -69,10 +69,13 @@ uint64_t timestamp=0;
 float rpm=0;
 uint32_t capturedata[12]={0};
 uint64_t q=0;
-uint64_t sumavg();
+float sumavg();
 uint64_t avg=0;
 uint64_t avgpre=0;
 float rpmpre=0;
+float rpmm=0;
+float f=0;
+uint64_t timestamp2=0;
 /* USER CODE END 0 */
 
 /**
@@ -108,7 +111,7 @@ int main(void)
   MX_TIM2_Init();
   MX_TIM5_Init();
   /* USER CODE BEGIN 2 */
-//  HAL_TIM_Base_Start_IT(&htim5);
+  HAL_TIM_Base_Start_IT(&htim5);
 
   HAL_TIM_Base_Start_IT(&htim2);
   HAL_TIM_IC_Start_DMA(&htim2, TIM_CHANNEL_1, (uint32_t*)capturedata,12);
@@ -118,10 +121,10 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-//	  if(micros()-timestamp > 100000){
-//	  	  	timestamp = micros();
-//	  	  	HAL_GPIO_TogglePin(LD2_GPIO_Port,LD2_Pin);
-//	  	  }
+	  if(micros()-timestamp2 > 1000000){
+	  	  	timestamp2 = micros();
+	  	  	HAL_GPIO_TogglePin(LD2_GPIO_Port,LD2_Pin);
+	  	  }
 
 	  if(__HAL_DMA_GET_COUNTER(htim2.hdma[TIM_DMA_ID_CC1])==1){
 		 avg=htim2.Instance->CNT-timestamp;
@@ -130,7 +133,9 @@ int main(void)
 
 		  timestamp=htim2.Instance->CNT;
 	  }
-	  rpm=(float)64*1/avg*1000000/60;
+
+	  rpm=(float)60*1/avg*1000000/64;
+
 
     /* USER CODE END WHILE */
 
@@ -380,14 +385,13 @@ uint64_t micros()
 {
 	return _micros + htim5.Instance->CNT;
 }
-uint64_t sumavg()
-{
-	uint64_t q=0;
-	for (int i=0; i<12;i++){
-		q=q+capturedata[i];
-	}
-	return q/12;
-}
+//float sumavg()
+//{
+//	float q=0;
+//	q=(float)1/(capturedata[12-__HAL_DMA_GET_COUNTER(htim2.hdma[TIM_DMA_ID_CC1])]-capturedata[12-__HAL_DMA_GET_COUNTER(htim2.hdma[TIM_DMA_ID_CC1])-1]);
+//
+//	return q*1000000;
+//}
 /* USER CODE END 4 */
 
 /**
